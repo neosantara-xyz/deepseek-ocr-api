@@ -255,4 +255,4 @@ Most OCR APIs are expensive and send your data to third parties. DeepSeek OCR ac
 
 ## License
 
-MIT License. See individual model licenses on HuggingFace.
+[Apache License](LICENSE). See individual model licenses on HuggingFace.
