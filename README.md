@@ -73,13 +73,13 @@ curl -X POST https://your-workspace--deepseek-ocr-fastapi-service.modal.run/v1/c
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "deepseek-ocr",
+    "model": "unsloth/deepseek-ocr",
     "messages": [
       {
         "role": "user",
         "content": [
           {"type": "text", "text": "Extract text from this image"},
-          {"type": "image_url", "image_url": {"url": "data:image/jpeg;base64,..."}}
+          {"type": "image_url", "image_url": {"url": "https://example.image.com"}}
         ]
       }
     ],
@@ -93,7 +93,7 @@ curl -X POST https://your-workspace--deepseek-ocr-fastapi-service.modal.run/v1/c
   "id": "chatcmpl-1699876543",
   "object": "chat.completion",
   "created": 1699876543,
-  "model": "deepseek-ai/deepseek-vl2",
+  "model": "unsloth/deepseek-ocr",
   "choices": [
     {
       "index": 0,
@@ -127,7 +127,7 @@ response = client.chat.completions.create(
             "role": "user",
             "content": [
                 {"type": "text", "text": "Extract all text from this image"},
-                {"type": "image_url", "image_url": {"url": "data:image/jpeg;base64,..."}}
+                {"type": "image_url", "image_url": {"url": "https://example.image.com"}}
             ]
         }
     ],
@@ -233,10 +233,6 @@ Yes! The `/v1/chat/completions` endpoint is fully compatible with OpenAI's Pytho
 
 Unsloth optimizes model loading and inference performance. DeepSeek OCR through Unsloth's `FastVisionModel` achieves <1 second inference time while maintaining 97% accuracy. The framework handles quantization and memory optimization automatically.
 
-### Why I made this?
-
-Most OCR APIs are expensive and send your data to third parties. DeepSeek OCR achieves 97% precision with 10x better token efficiency than traditional approaches, but deployment is complex. This project simplifies that - one command to deploy your own private, cost-effective OCR API with OpenAI-compatible endpoints.
-
 ## Use Cases
 
 - Document digitization
@@ -252,6 +248,7 @@ Most OCR APIs are expensive and send your data to third parties. DeepSeek OCR ac
 - [DeepSeek OCR Repository](https://github.com/deepseek-ai/DeepSeek-OCR)
 - [Modal Documentation](https://modal.com/docs)
 - [Unsloth](https://github.com/unslothai/unsloth)
+- [DeepSeek OCR at Neosantara](https://docs.neosantara.xyz/en/deepseek-ocr)
 
 ## License
 
