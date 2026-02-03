@@ -25,6 +25,10 @@ from ocr_utils import (
 
 app = modal.App("deepseek-ocr")
 
+# Set cache directories early
+os.environ["HF_HOME"] = "/root/.cache/huggingface"
+os.environ["UNSLOTH_WARN_UNINITIALIZED"] = "0"
+
 # ============================================================
 # Download model function
 # ============================================================
@@ -51,13 +55,13 @@ def download():
     os.environ["HF_HOME"] = "/root/.cache/huggingface"
     os.environ["UNSLOTH_WARN_UNINITIALIZED"] = "0"
     print(f"Downloading {MODEL_NAME}...")
+    print(f"HF_HOME: {os.environ.get('HF_HOME')}")
 
     model, tokenizer = FastVisionModel.from_pretrained(
         model_name=MODEL_NAME,
         max_seq_length=MAX_SEQ_LENGTH,
         dtype=None,
         load_in_4bit=LOAD_IN_4BIT,
-        auto_model=AutoModel,
         trust_remote_code=True,
         unsloth_force_compile=True,
         use_gradient_checkpointing="unsloth",
@@ -97,17 +101,20 @@ class OCRModelServer:
         os.environ["HF_HOME"] = "/root/.cache/huggingface"
         os.environ["UNSLOTH_WARN_UNINITIALIZED"] = "0"
         print(f"Loading {self.model_name} from volume cache...")
+        print(f"Cache directory: {os.environ['HF_HOME']}")
+        if os.path.exists(os.environ["HF_HOME"]):
+            print(f"Cache contents: {os.listdir(os.environ['HF_HOME'])}")
+        else:
+            print("Cache directory does not exist!")
 
         self.model, self.tokenizer = FastVisionModel.from_pretrained(
             model_name=self.model_name,
             max_seq_length=MAX_SEQ_LENGTH,
             dtype=None,
             load_in_4bit=LOAD_IN_4BIT,
-            auto_model=AutoModel,
             trust_remote_code=True,
             unsloth_force_compile=True,
             use_gradient_checkpointing="unsloth",
-            local_files_only=True,
         )
 
         if self.tokenizer.pad_token is None:

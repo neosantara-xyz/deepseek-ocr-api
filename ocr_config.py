@@ -30,6 +30,7 @@ deepseek_image = (
         "unsloth[colab-new] @ git+https://github.com/unslothai/unsloth.git",
         "transformers",
         "huggingface_hub",
+        "hf_transfer",
         "flashinfer-python",
         "xformers",
         "bitsandbytes",
