@@ -49,24 +49,43 @@ def download():
     Returns:
         str: Success message with model name
     """
-    from unsloth import FastVisionModel
+    import unsloth  # Import unsloth first!
+    import transformers
+    import builtins
+    import os
+    
+    try:
+        from transformers import PreTrainedConfig
+    except ImportError:
+        from transformers import PretrainedConfig as PreTrainedConfig
+    
     from transformers import AutoModel
-
+    builtins.PreTrainedConfig = PreTrainedConfig
+    
+    from huggingface_hub import snapshot_download
     os.environ["HF_HOME"] = "/root/.cache/huggingface"
+    print(f"Downloading {MODEL_NAME} snapshot...")
+    
+    local_dir = os.path.join(os.environ["HF_HOME"], "deepseek_ocr_model")
+    snapshot_download(MODEL_NAME, local_dir=local_dir)
+    
+    from unsloth import FastVisionModel
     os.environ["UNSLOTH_WARN_UNINITIALIZED"] = "0"
-    print(f"Downloading {MODEL_NAME}...")
-    print(f"HF_HOME: {os.environ.get('HF_HOME')}")
 
+    print("Verifying model load...")
     model, tokenizer = FastVisionModel.from_pretrained(
-        model_name=MODEL_NAME,
+        model_name=local_dir,
         max_seq_length=MAX_SEQ_LENGTH,
         dtype=None,
         load_in_4bit=LOAD_IN_4BIT,
+        auto_model=AutoModel,
         trust_remote_code=True,
         unsloth_force_compile=True,
         use_gradient_checkpointing="unsloth",
     )
 
+    hf_cache_vol.commit()
+    unsloth_cache_vol.commit()
     hf_cache_vol.commit()
     unsloth_cache_vol.commit()
     print("Model downloaded and cached!")
@@ -95,23 +114,32 @@ class OCRModelServer:
         Loads DeepSeek OCR model from cached volumes for fast inference.
         Runs automatically when container spins up.
         """
-        from unsloth import FastVisionModel
+        import unsloth  # Import unsloth first!
+        import transformers
+        import builtins
+        import os
+        
+        try:
+            from transformers import PreTrainedConfig
+        except ImportError:
+            from transformers import PretrainedConfig as PreTrainedConfig
+            
         from transformers import AutoModel
-
+        builtins.PreTrainedConfig = PreTrainedConfig
+        from unsloth import FastVisionModel
+        
         os.environ["HF_HOME"] = "/root/.cache/huggingface"
         os.environ["UNSLOTH_WARN_UNINITIALIZED"] = "0"
-        print(f"Loading {self.model_name} from volume cache...")
-        print(f"Cache directory: {os.environ['HF_HOME']}")
-        if os.path.exists(os.environ["HF_HOME"]):
-            print(f"Cache contents: {os.listdir(os.environ['HF_HOME'])}")
-        else:
-            print("Cache directory does not exist!")
+        
+        local_dir = os.path.join(os.environ["HF_HOME"], "deepseek_ocr_model")
+        print(f"Loading model from {local_dir}...")
 
         self.model, self.tokenizer = FastVisionModel.from_pretrained(
-            model_name=self.model_name,
+            model_name=local_dir,
             max_seq_length=MAX_SEQ_LENGTH,
             dtype=None,
             load_in_4bit=LOAD_IN_4BIT,
+            auto_model=AutoModel,
             trust_remote_code=True,
             unsloth_force_compile=True,
             use_gradient_checkpointing="unsloth",
@@ -431,7 +459,10 @@ async def test():
     """
     url = fastapi_service.web_url
     test_img = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg=="
-    headers = {"Authorization": f"Bearer {os.environ.get('NEO_API_KEY', 'test-key')}"}
+    
+    # Get API key from local environment
+    api_key = os.environ.get("NEO_API_KEY", "test-key")
+    headers = {"Authorization": f"Bearer {api_key}"}
 
     async with aiohttp.ClientSession(base_url=url) as session:
         async with session.get("/health") as resp:
@@ -440,14 +471,20 @@ async def test():
 
         async with session.post("/v1/ocr", json={"image": f"data:image/png;base64,{test_img}"}, headers=headers) as resp:
             result = await resp.json()
-            print(f"✓ OCR: {result['extracted_text'][:100]}")
+            if resp.status != 200:
+                print(f"✗ OCR failed: {resp.status} {result}")
+            else:
+                print(f"✓ OCR: {result['extracted_text'][:100]}")
 
         async with session.post("/v1/chat/completions", json={
             "messages": [{"role": "user", "content": [{"type": "image_url", "image_url": {"url": f"data:image/png;base64,{test_img}"}}]}],
             "stream": False
         }, headers=headers) as resp:
             result = await resp.json()
-            print(f"✓ Chat: {result['choices'][0]['message']['content'][:100]}")
+            if resp.status != 200:
+                print(f"✗ Chat failed: {resp.status} {result}")
+            else:
+                print(f"✓ Chat: {result['choices'][0]['message']['content'][:100]}")
 
 if __name__ == "__main__":
     print("DeepSeek OCR + Modal")

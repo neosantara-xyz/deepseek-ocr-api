@@ -21,26 +21,17 @@ unsloth_cache_vol = modal.Volume.from_name("unsloth-cache", create_if_missing=Tr
 
 # Image setup with vision dependencies
 deepseek_image = (
-    modal.Image.from_registry("nvidia/cuda:12.8.0-devel-ubuntu22.04", add_python="3.11")
+    modal.Image.from_registry("nvidia/cuda:12.4.1-devel-ubuntu22.04", add_python="3.11")
     .entrypoint([])
-    .run_commands("set -ex && apt-get update && apt-get install -y git")
-    .uv_pip_install(
-        "torch==2.8.0",
-        "torchvision",
-        "unsloth[colab-new] @ git+https://github.com/unslothai/unsloth.git",
-        "transformers",
-        "huggingface_hub",
-        "hf_transfer",
-        "flashinfer-python",
-        "xformers",
-        "bitsandbytes",
-        "fastapi",
-        "uvicorn",
-        "pillow",  # For image processing
-        "requests",  # For URL image fetching
-        "addict",  # Required by DeepSeek OCR
-        "easydict",  # Required by DeepSeek OCR
-        "matplotlib",  # Required by DeepSeek OCR
+    .run_commands(
+        "apt-get update && apt-get install -y git",
+        "pip install torch==2.5.1 torchvision --index-url https://download.pytorch.org/whl/cu124",
+        "pip install --no-deps bitsandbytes accelerate xformers==0.0.29.post3 peft trl triton cut_cross_entropy unsloth_zoo",
+        "pip install sentencepiece protobuf datasets==4.3.0 huggingface_hub>=0.34.0 hf_transfer",
+        "pip install --no-deps unsloth",
+        "pip install transformers==4.56.2",
+        "pip install --no-deps trl==0.22.2",
+        "pip install jiwer einops addict easydict matplotlib pillow requests fastapi uvicorn psutil accelerate"
     )
     .env({"HF_HUB_ENABLE_HF_TRANSFER": "1"})
     # Add local Python files for imports (Modal 1.0 way)

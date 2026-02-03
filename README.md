@@ -1,5 +1,7 @@
 # DeepSeek OCR API
 
+> **Update:** Now features optimized model loading with robust snapshot downloads and improved environment stability.
+
 Serverless OCR API powered by [DeepSeek-OCR (3B parameters)](https://huggingface.co/deepseek-ai/DeepSeek-OCR) deployed on [Modal.](https://modal.com)
 
 ## Features
@@ -8,7 +10,7 @@ Serverless OCR API powered by [DeepSeek-OCR (3B parameters)](https://huggingface
 - Bearer token authentication
 - Base64 and URL image inputs
 - Optional bounding box visualization
-- Modal Volume caching for fast cold starts
+- Modal Volume caching for fast cold starts (optimized with snapshot download)
 - Serverless GPU inference
 
 ## Quick Start
