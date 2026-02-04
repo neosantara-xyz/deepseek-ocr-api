@@ -160,7 +160,7 @@ response = requests.post(
     json={
         "image": f"data:image/jpeg;base64,{image_b64}",
         "image_type": "base64",
-        "return_image": True  # Optional: get bounding boxes visualization
+        "return_image": True  # Optional: get bounding boxes visualization (auto-grounding enabled)
     }
 )
 
@@ -171,6 +171,9 @@ print(result["extracted_text"])
 if "result_image_base64" in result:
     with open("result_with_boxes.jpg", "wb") as f:
         f.write(base64.b64decode(result["result_image_base64"]))
+
+# Note: When return_image is true, the server auto-injects <|grounding|>
+# into the prompt so DeepSeek OCR can produce layout tags and draw boxes.
 ```
 
 ## OpenAI Client Example
@@ -194,7 +197,7 @@ response = client.chat.completions.create(
             ]
         }
     ],
-    extra_body={"return_image": True}  # Optional
+    extra_body={"return_image": True}  # Optional (auto-grounding enabled)
 )
 
 print(response.choices[0].message.content)

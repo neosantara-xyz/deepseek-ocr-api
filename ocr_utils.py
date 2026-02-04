@@ -58,6 +58,26 @@ def get_default_ocr_prompt() -> str:
     return "<image>\nFree OCR."
 
 
+def ensure_grounding_prompt(prompt: Optional[str]) -> str:
+    """
+    Ensure prompt includes <image> and <|grounding|> for layout OCR.
+
+    If prompt is empty, returns a default grounding prompt.
+    If prompt includes <image> but not <|grounding|>, inserts <|grounding|> after <image>.
+    Otherwise, prefixes <image> and <|grounding|> to the prompt.
+    """
+    if not prompt or not prompt.strip():
+        return "<image>\n<|grounding|>OCR this image."
+
+    text = prompt.strip()
+    if "<image>" in text:
+        if "<|grounding|>" in text:
+            return text
+        return text.replace("<image>", "<image>\n<|grounding|>", 1)
+
+    return "<image>\n<|grounding|>" + text
+
+
 def extract_images_from_messages(messages: list) -> tuple[str, list]:
     """
     Extract text and images from OpenAI vision API message format

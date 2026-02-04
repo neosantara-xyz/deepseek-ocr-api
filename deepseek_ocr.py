@@ -21,6 +21,7 @@ from ocr_utils import (
     process_image_from_base64,
     process_image_from_url,
     extract_images_from_messages,
+    ensure_grounding_prompt,
 )
 
 app = modal.App("deepseek-ocr")
@@ -171,7 +172,9 @@ class OCRModelServer:
         import time, tempfile, base64, shutil
 
         image = process_image_from_base64(image_data) if image_type == "base64" else process_image_from_url(image_data)
-        if not prompt:
+        if return_image:
+            prompt = ensure_grounding_prompt(prompt)
+        elif not prompt:
             prompt = "<image>\nFree OCR."
 
         tmp_dir = tempfile.mkdtemp()
